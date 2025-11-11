@@ -92,7 +92,7 @@ interface CreditsContextType {
   processPurchase: (item: ContentItem) => Promise<boolean>;
   addReward: () => void;
   addContentItem: (item: ContentItem) => void;
-  deleteContent: (itemId: string) => boolean;
+  deleteContent: (itemId: string) => Promise<boolean>;
   updateSubscriptionPlan: (updatedPlan: SubscriptionPlan) => void;
   updateCreditPackage: (updatedPackage: CreditPackage) => void;
   subscribeToPlan: (plan: SubscriptionPlan) => void; // For current user
@@ -951,16 +951,65 @@ export const CreditsProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
-  const deleteContent = useCallback((itemId: string): boolean => {
+  const deleteContent = useCallback(async (itemId: string): Promise<boolean> => {
     const item = contentItems.find(i => i.id === itemId);
     if (!item) return false;
 
     const canDelete = (Date.now() - new Date(item.createdAt).getTime()) > 24 * 60 * 60 * 1000;
-    if (canDelete) {
-        setContentItems(prev => prev.filter(i => i.id !== itemId));
-        return true;
+    if (!canDelete) return false;
+
+    try {
+      // Fetch media to remove associated storage files
+      const { data: mediaRows, error: mediaSelectError } = await supabase
+        .from('media')
+        .select('storage_path')
+        .eq('content_item_id', itemId);
+
+      if (mediaSelectError) {
+        console.error('Error fetching media for deletion:', mediaSelectError);
+      }
+
+      if (mediaRows && mediaRows.length > 0) {
+        const paths = mediaRows
+          .map((m: any) => m.storage_path)
+          .filter(Boolean)
+          .map((p: string) => (p.includes('content-media/') ? p.split('content-media/')[1] : p));
+
+        if (paths.length) {
+          const { error: storageError } = await supabase.storage.from('content-media').remove(paths);
+          if (storageError) {
+            console.error('Error removing storage files:', storageError);
+          }
+        }
+
+        // Delete media DB rows
+        const { error: mediaDeleteError } = await supabase
+          .from('media')
+          .delete()
+          .eq('content_item_id', itemId);
+        if (mediaDeleteError) {
+          console.error('Error deleting media rows:', mediaDeleteError);
+        }
+      }
+
+      // Delete the content item
+      const { error: contentDeleteError } = await supabase
+        .from('content_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (contentDeleteError) {
+        console.error('Error deleting content item:', contentDeleteError);
+        return false;
+      }
+
+      // Update local state only after DB deletion succeeds
+      setContentItems(prev => prev.filter(i => i.id !== itemId));
+      return true;
+    } catch (err) {
+      console.error('Error deleting content in Supabase:', err);
+      return false;
     }
-    return false;
   }, [contentItems]);
 
   const updateSubscriptionPlan = useCallback((updatedPlan: SubscriptionPlan) => {

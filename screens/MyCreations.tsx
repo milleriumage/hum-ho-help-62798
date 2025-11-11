@@ -16,12 +16,12 @@ const MyCreations: React.FC = () => {
         }
     }, [contentItems, currentUser]);
 
-    const handleDelete = (itemId: string) => {
-        const success = deleteContent(itemId);
+    const handleDelete = async (itemId: string) => {
+        const success = await deleteContent(itemId);
         if (success) {
             setNotification({message: 'Content deleted successfully.', type: 'success'});
         } else {
-            setNotification({message: 'Deletion failed. Content must be over 24 hours old.', type: 'error'});
+            setNotification({message: 'Deletion failed. Content must be over 24 hours old or a server error occurred.', type: 'error'});
         }
         setTimeout(() => setNotification(null), 3000);
     }

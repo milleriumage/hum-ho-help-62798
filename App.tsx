@@ -28,7 +28,7 @@ import VitrineView from './screens/VitrineView';
 import MyBio from './screens/MyBio';
 import MyFuns from './screens/MyFuns';
 import CreatorChat from './screens/CreatorChat';
-import SupportButton from './components/SupportButton';
+
 import { useCredits } from './hooks/useCredits';
 
 const MainLayout: React.FC = () => {
@@ -125,7 +125,7 @@ const MainLayout: React.FC = () => {
           {renderScreen()}
         </div>
       </main>
-      <SupportButton />
+      
     </div>
   );
 }

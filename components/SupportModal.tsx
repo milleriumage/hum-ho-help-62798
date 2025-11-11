@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, MessageCircle } from 'lucide-react';
-
+import { supabase } from '../src/integrations/supabase/client';
 interface SupportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,20 +16,25 @@ const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate sending message
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setSuccess(true);
-    setIsSubmitting(false);
-    
-    setTimeout(() => {
-      setSuccess(false);
-      setName('');
-      setEmail('');
-      setMessage('');
-      onClose();
-    }, 2000);
+    try {
+      const { error } = await supabase.functions.invoke('send-support-email', {
+        body: { name, email, message },
+      });
+      if (error) throw error;
+      setSuccess(true);
+    } catch (error) {
+      console.error('Error sending support message:', error);
+      alert('Falha ao enviar a mensagem. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => {
+        setSuccess(false);
+        setName('');
+        setEmail('');
+        setMessage('');
+        onClose();
+      }, 2000);
+    }
   };
 
   if (!isOpen) return null;
