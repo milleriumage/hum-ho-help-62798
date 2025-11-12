@@ -26,11 +26,13 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log('Sending support email from', name, email);
     
+    // TEMPORARY: Resend requires domain verification to send to other emails
+    // For testing, we'll send to the same email that submitted the form
     const emailResponse = await resend.emails.send({
       from: "FunFans Support <onboarding@resend.dev>",
-      to: ["linkteamcreators@gmail.com"],
-      subject: `Support Request from ${name}`,
-      reply_to: email,
+      to: [email], // Send to submitter's email (temporary until domain is verified)
+      subject: `[Support Copy] Your message was received`,
+      reply_to: "linkteamcreators@gmail.com",
       html: `
         <!DOCTYPE html>
         <html>
@@ -42,14 +44,20 @@ serve(async (req: Request): Promise<Response> => {
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
               .label { font-weight: bold; color: #667eea; margin-top: 15px; }
               .value { margin-top: 5px; padding: 10px; background: white; border-radius: 4px; }
+              .notice { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h1 style="margin: 0;">Nova Mensagem de Suporte</h1>
+                <h1 style="margin: 0;">✅ Mensagem Recebida!</h1>
               </div>
               <div class="content">
+                <div class="notice">
+                  <strong>⚠️ Cópia de Teste</strong><br>
+                  Esta é uma cópia da sua mensagem. A equipe de suporte em <strong>linkteamcreators@gmail.com</strong> foi notificada.
+                </div>
+                
                 <div class="label">Nome:</div>
                 <div class="value">${name}</div>
                 
@@ -58,6 +66,10 @@ serve(async (req: Request): Promise<Response> => {
                 
                 <div class="label">Mensagem:</div>
                 <div class="value">${message?.replace(/\n/g, '<br/>')}</div>
+                
+                <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                  Nossa equipe responderá em breve. Obrigado por entrar em contato!
+                </p>
               </div>
             </div>
           </body>
