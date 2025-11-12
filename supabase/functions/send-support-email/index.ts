@@ -12,7 +12,8 @@ const corsHeaders = {
 
 interface SupportEmailRequest {
   name: string;
-  email: string;
+  userEmail: string;
+  subject: string;
   message: string;
 }
 
@@ -22,17 +23,15 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, message }: SupportEmailRequest = await req.json();
+    const { name, userEmail, subject, message }: SupportEmailRequest = await req.json();
 
-    console.log('Sending support email from', name, email);
+    console.log('Sending support email from', name, userEmail);
     
-    // TEMPORARY: Resend requires domain verification to send to other emails
-    // For testing, we'll send to the same email that submitted the form
     const emailResponse = await resend.emails.send({
       from: "FunFans Support <onboarding@resend.dev>",
-      to: [email], // Send to submitter's email (temporary until domain is verified)
-      subject: `[Support Copy] Your message was received`,
-      reply_to: "linkteamcreators@gmail.com",
+      to: ["linkteamcreators@gmail.com"],
+      subject: `[Suporte] ${subject}`,
+      reply_to: userEmail,
       html: `
         <!DOCTYPE html>
         <html>
@@ -44,31 +43,40 @@ serve(async (req: Request): Promise<Response> => {
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
               .label { font-weight: bold; color: #667eea; margin-top: 15px; }
               .value { margin-top: 5px; padding: 10px; background: white; border-radius: 4px; }
-              .notice { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+              .section { margin-bottom: 20px; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h1 style="margin: 0;">✅ Mensagem Recebida!</h1>
+                <h1 style="margin: 0;">📧 Nova Mensagem de Suporte</h1>
               </div>
               <div class="content">
-                <div class="notice">
-                  <strong>⚠️ Cópia de Teste</strong><br>
-                  Esta é uma cópia da sua mensagem. A equipe de suporte em <strong>linkteamcreators@gmail.com</strong> foi notificada.
+                <div class="section">
+                  <div class="label">Nome:</div>
+                  <div class="value">${name}</div>
                 </div>
                 
-                <div class="label">Nome:</div>
-                <div class="value">${name}</div>
+                <div class="section">
+                  <div class="label">Email do Usuário:</div>
+                  <div class="value">${userEmail}</div>
+                </div>
                 
-                <div class="label">Email:</div>
-                <div class="value">${email}</div>
+                <div class="section">
+                  <div class="label">Motivo do Contato:</div>
+                  <div class="value">${subject}</div>
+                </div>
                 
-                <div class="label">Mensagem:</div>
-                <div class="value">${message?.replace(/\n/g, '<br/>')}</div>
+                <div class="section">
+                  <div class="label">Mensagem:</div>
+                  <div class="value">${message?.replace(/\n/g, '<br/>')}</div>
+                </div>
                 
-                <p style="margin-top: 30px; color: #666; font-size: 14px;">
-                  Nossa equipe responderá em breve. Obrigado por entrar em contato!
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+                
+                <p style="color: #666; font-size: 14px; margin: 0;">
+                  Esta mensagem foi enviada através do formulário de suporte do FunFans.<br>
+                  Responda diretamente para: <strong>${userEmail}</strong>
                 </p>
               </div>
             </div>

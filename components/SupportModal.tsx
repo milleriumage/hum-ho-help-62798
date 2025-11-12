@@ -8,17 +8,18 @@ interface SupportModalProps {
 
 const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
   const [name, setName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const email = 'exman774@gmail.com'; // Default email
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const { error } = await supabase.functions.invoke('send-support-email', {
-        body: { name, email, message },
+        body: { name, userEmail, subject, message },
       });
       if (error) throw error;
       setSuccess(true);
@@ -30,6 +31,8 @@ const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
       setTimeout(() => {
         setSuccess(false);
         setName('');
+        setUserEmail('');
+        setSubject('');
         setMessage('');
         onClose();
       }, 2000);
@@ -69,7 +72,7 @@ const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-300 mb-1">
-                  Name
+                  Nome
                 </label>
                 <input
                   id="name"
@@ -78,13 +81,43 @@ const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                  placeholder="Your name"
+                  placeholder="Seu nome"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="user-email" className="block text-sm font-medium text-neutral-300 mb-1">
+                  Email
+                </label>
+                <input
+                  id="user-email"
+                  type="email"
+                  required
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  placeholder="seu@email.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="subject" className="block text-sm font-medium text-neutral-300 mb-1">
+                  Motivo
+                </label>
+                <input
+                  id="subject"
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  placeholder="Qual o motivo do contato?"
                 />
               </div>
 
               <div>
                 <label htmlFor="support-message" className="block text-sm font-medium text-neutral-300 mb-1">
-                  Message
+                  Mensagem
                 </label>
                 <textarea
                   id="support-message"
@@ -93,7 +126,7 @@ const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
                   className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
-                  placeholder="How can we help you?"
+                  placeholder="Explique sua situação..."
                 />
               </div>
 
