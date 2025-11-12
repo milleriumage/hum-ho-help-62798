@@ -24,19 +24,44 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const { name, email, message }: SupportEmailRequest = await req.json();
 
-    console.log('Sending email to linkteamcreators@gmail.com from', name, email);
+    console.log('Sending support email from', name, email);
     
     const emailResponse = await resend.emails.send({
-      from: "support@resend.dev",
+      from: "FunFans Support <onboarding@resend.dev>",
       to: ["linkteamcreators@gmail.com"],
-      subject: `Support message from ${name}`,
+      subject: `Support Request from ${name}`,
       reply_to: email,
       html: `
-        <h2>New Support Message</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message?.replace(/\n/g, '<br/>')}</p>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+              .label { font-weight: bold; color: #667eea; margin-top: 15px; }
+              .value { margin-top: 5px; padding: 10px; background: white; border-radius: 4px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1 style="margin: 0;">Nova Mensagem de Suporte</h1>
+              </div>
+              <div class="content">
+                <div class="label">Nome:</div>
+                <div class="value">${name}</div>
+                
+                <div class="label">Email:</div>
+                <div class="value">${email}</div>
+                
+                <div class="label">Mensagem:</div>
+                <div class="value">${message?.replace(/\n/g, '<br/>')}</div>
+              </div>
+            </div>
+          </body>
+        </html>
       `,
     });
     
